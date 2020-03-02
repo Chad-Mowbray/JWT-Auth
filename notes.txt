@@ -1,0 +1,22 @@
+Resources:
+https://www.freecodecamp.org/news/what-are-json-web-tokens-jwt-auth-tutorial/
+https://tutorialedge.net/nodejs/nodejs-jwt-authentication-tutorial/
+https://github.com/weibenfalk/jwtToken-react-express
+
+
+Create a lesson about JWT
+
+Use a public/private cert  
+
+hite private cert, make pub available
+
+(add the lesson with example code Bob and Alice)
+
+Have a server, with two endpoints: public and private
+
+Have user log in
+issue user a signed JWT
+If JWT valid, grant access
+
+
+
