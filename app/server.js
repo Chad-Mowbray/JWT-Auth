@@ -3,7 +3,7 @@ let fs = require('fs')
 let path = require('path')
 let jwt = require("jsonwebtoken")
 var nunjucks  = require('nunjucks');
-let users = require('./database/fakeDatabase')
+let usersDatabase = require('./database/fakeDatabase')
  
 let app = express()
 
@@ -51,7 +51,7 @@ const loggedIn = function(req) {
     }
 }
  
-// console.log(users)
+// console.log(usersDatabase)
  
  
 app.get('/', function(req, res) {
@@ -62,16 +62,16 @@ app.get('/', function(req, res) {
 app.get('/login', function(req, res) {
     console.log('GET request to /login...')
     // res.sendFile(path.join(__dirname + '/public/login.html'));
-    res.render("login.html", {title: 'Login Page', numUsers: users.length, isloggedIn: loggedIn(req)})
+    res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isloggedIn: loggedIn(req)})
 })
 
 app.post('/login', function(req, res) {
     console.log('POST request to /login...')
-   let usersArr = users   
+//    let usersArr = users   
    loggedIn(req)
 
 
-    if(usersArr.filter( (user) => user['username'] === req.body.username ).length === 1 && usersArr.filter( (user) => user['password'] === req.body.password).length === 1) {
+    if(usersDatabase.filter( (user) => user['username'] === req.body.username ).length === 1 && users.filter( (user) => user['password'] === req.body.password).length === 1) {
         console.log('Valid user')
         res.cookie("username", req.body.username)
         res.cookie("password", req.body.password)
@@ -89,7 +89,7 @@ app.get('/signup', function(req, res) {
     // res.sendFile(path.join(__dirname + '/public/signup.html'));
     loggedIn(req)
 
-    res.render("signup.html", {notSignedUpYet: true, title: 'Signup Page', numUsers: users.length, isLoggedIn: loggedIn(req)})
+    res.render("signup.html", {notSignedUpYet: true, title: 'Signup Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
 })
 
 app.post('/signup', function(req, res) {
@@ -97,16 +97,16 @@ app.post('/signup', function(req, res) {
 
 
     // let usersArr = users
-    if(users.filter( (user) => user['username'] === req.body.username ).length === 0 && users.filter( (user) => user['password'] === req.body.password).length === 0) {
-        users.push({
+    if(usersDatabase.filter( (user) => user['username'] === req.body.username ).length === 0 && usersDatabase.filter( (user) => user['password'] === req.body.password).length === 0) {
+        usersDatabase.push({
             username: req.body.username,
             email: 'default@email.com',
             password: req.body.password
         })
-        console.log(users)
-    } if(users.filter( (user) => user['username'] === req.body.username).length === 1) {
+        console.log(usersDatabase)
+    } if(usersDatabase.filter( (user) => user['username'] === req.body.username).length === 1) {
         // res.send(`Congratulations, ${req.body.username}!  You've just created an account`)
-        res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: users.length, isLoggedIn: loggedIn(req)})
+        res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
     } else {
         res.send("Please try again")
     }
@@ -129,7 +129,7 @@ app.get('/secretpage', function(req, res) {
 
     console.log('GET request to /secretpage...')
     // res.sendFile(path.join(__dirname + '/public/secretpage.html'));
-    res.render("secretpage.html", {title: 'Secret Page', numUsers: users.length, isLoggedIn: loggedIn(req)})
+    res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
 })
  
 // app.post('/publickey', function(req, res) {
