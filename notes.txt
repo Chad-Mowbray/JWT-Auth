@@ -8,15 +8,18 @@ Create a lesson about JWT
 
 Use a public/private cert  
 
-hite private cert, make pub available
+hide private cert, make pub available
 
-(add the lesson with example code Bob and Alice)
+(add the lesson with example code Bob and Alice) (fakeSHA)
 
 Have a server, with two endpoints: public and private
 
 Have user log in
 issue user a signed JWT
 If JWT valid, grant access
+
+
+Show how modifying a single character in the token invalidates it (show a bad attempt at stealing a token)
 
 
 
