@@ -1,7 +1,5 @@
 
-module.exports = function returnUsers() {
-
-    let users = [
+module.exports =  users = [
         {
             username: "computerBob",
             email: "bob@bobsystems.com",
@@ -23,6 +21,5 @@ module.exports = function returnUsers() {
             password: "a"
         }
     ]
-    return users
-}
+
 

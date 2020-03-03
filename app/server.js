@@ -2,17 +2,20 @@
 let fs = require('fs')
 let path = require('path')
 let jwt = require("jsonwebtoken")
-
+var nunjucks  = require('nunjucks');
 let users = require('./database/fakeDatabase')
  
 let app = express()
+
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
 
-// app.use(bodyParser.json()); 
-// app.use(bodyParser.urlencoded({ extended: true })); 
- 
- 
+nunjucks.configure('public', {
+    autoescape: true,
+    express: app
+});
+
+  
 const createSignedJWT = function() {
     let payload = {
         "jti": "1234asdf",
@@ -37,9 +40,18 @@ const returnToken = function(req, res) {
         res.send('401: Unauthorized')
     }
 }
- 
 
-console.log(users())
+const loggedIn = function(req) {
+    console.log(req.headers.cookie)
+    if(!req.headers.cookie){
+        return false
+    } else {
+        let isLoggedIn = req.headers.cookie.split('; ').filter( keyVal => keyVal.split("=")[1] === "true" )
+        return isLoggedIn ? true : false
+    }
+}
+ 
+// console.log(users)
  
  
 app.get('/', function(req, res) {
@@ -49,40 +61,75 @@ app.get('/', function(req, res) {
 
 app.get('/login', function(req, res) {
     console.log('GET request to /login...')
-    res.sendFile(path.join(__dirname + '/public/login.html'));
+    // res.sendFile(path.join(__dirname + '/public/login.html'));
+    res.render("login.html", {title: 'Login Page', numUsers: users.length, isloggedIn: loggedIn(req)})
 })
 
 app.post('/login', function(req, res) {
     console.log('POST request to /login...')
-    usersArr = users()    
+   let usersArr = users   
+   loggedIn(req)
+
+
     if(usersArr.filter( (user) => user['username'] === req.body.username ).length === 1 && usersArr.filter( (user) => user['password'] === req.body.password).length === 1) {
         console.log('Valid user')
         res.cookie("username", req.body.username)
         res.cookie("password", req.body.password)
+        res.cookie("loggedIn", "true")
         return res.redirect("/token")
+    } else {
+        console.log(req.body)
+        res.send("That was not a valid username/password combination")
     }
 
-
-    console.log(req.body)
-    res.send("You have made a post to /login")
 })
 
 app.get('/signup', function(req, res) {
     console.log('GET request to /signup...')
+    // res.sendFile(path.join(__dirname + '/public/signup.html'));
+    loggedIn(req)
 
-
-    res.sendFile(path.join(__dirname + '/public/signup.html'));
+    res.render("signup.html", {notSignedUpYet: true, title: 'Signup Page', numUsers: users.length, isLoggedIn: loggedIn(req)})
 })
+
+app.post('/signup', function(req, res) {
+    loggedIn(req)
+
+
+    // let usersArr = users
+    if(users.filter( (user) => user['username'] === req.body.username ).length === 0 && users.filter( (user) => user['password'] === req.body.password).length === 0) {
+        users.push({
+            username: req.body.username,
+            email: 'default@email.com',
+            password: req.body.password
+        })
+        console.log(users)
+    } if(users.filter( (user) => user['username'] === req.body.username).length === 1) {
+        // res.send(`Congratulations, ${req.body.username}!  You've just created an account`)
+        res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: users.length, isLoggedIn: loggedIn(req)})
+    } else {
+        res.send("Please try again")
+    }
+
+    // res.sendFile(path.join(__dirname + '/public/signup.html'));
+})
+
+
+
 
 app.get('/token', function(req, res) {
 
-    
+    loggedIn(req)
+
     res.send('you should get a token here')
 })
 
 app.get('/secretpage', function(req, res) {
+    loggedIn(req)
+
     console.log('GET request to /secretpage...')
-    res.sendFile(path.join(__dirname + '/public/secretpage.html'));
+    // res.sendFile(path.join(__dirname + '/public/secretpage.html'));
+    res.render("secretpage.html", {title: 'Secret Page', numUsers: users.length, isLoggedIn: loggedIn(req)})
 })
  
 // app.post('/publickey', function(req, res) {
