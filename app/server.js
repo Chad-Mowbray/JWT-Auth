@@ -17,12 +17,15 @@ nunjucks.configure('public', {
 
   
 const createSignedJWT = function() {
+    const jti = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const now = new Date()  
+    const epochTime = Math.round(now.getTime() / 1000)
+
     let payload = {
-        "jti": "1234asdf",
-        "exp": 1582709897,                                           
-        "nbf": 0,
-        "iat": 1581709837,
-        "email": "anemail@email.com"
+        "jti": jti,
+        "exp": epochTime + 9999,                                           
+        "iat": epochTime,
+        "scope": "secretpage:read"
     }
  
     let privateKey = fs.readFileSync( path.join(__dirname, "public", "certificate", "key.pem"))
@@ -32,8 +35,10 @@ const createSignedJWT = function() {
 }
  
 const returnToken = function(req, res) {
- 
-    if(req.query.client_secret == "1234asdf" && req.query.client_id == "internalService") {
+    console.log("in returnToken")
+    console.log(loggedIn(req))
+    if(loggedIn(req)) {
+        console.log('in returnToken, in if')
         let token = createSignedJWT()
         res.send(token)
     } else {
@@ -47,6 +52,7 @@ const loggedIn = function(req) {
         return false
     } else {
         let isLoggedIn = req.headers.cookie.split('; ').filter( keyVal => keyVal.split("=")[1] === "true" )
+        console.log("in loggedIn.  Logged in? : ")
         return isLoggedIn ? true : false
     }
 }
@@ -61,16 +67,12 @@ app.get('/', function(req, res) {
 
 app.get('/login', function(req, res) {
     console.log('GET request to /login...')
-    // res.sendFile(path.join(__dirname + '/public/login.html'));
+    console.log(loggedIn(req))
     res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isloggedIn: loggedIn(req)})
 })
 
 app.post('/login', function(req, res) {
     console.log('POST request to /login...')
-//    let usersArr = users   
-   loggedIn(req)
-
-
     if(usersDatabase.filter( (user) => user['username'] === req.body.username ).length === 1 && users.filter( (user) => user['password'] === req.body.password).length === 1) {
         console.log('Valid user')
         res.cookie("username", req.body.username)
@@ -86,17 +88,10 @@ app.post('/login', function(req, res) {
 
 app.get('/signup', function(req, res) {
     console.log('GET request to /signup...')
-    // res.sendFile(path.join(__dirname + '/public/signup.html'));
-    loggedIn(req)
-
     res.render("signup.html", {notSignedUpYet: true, title: 'Signup Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
 })
 
 app.post('/signup', function(req, res) {
-    loggedIn(req)
-
-
-    // let usersArr = users
     if(usersDatabase.filter( (user) => user['username'] === req.body.username ).length === 0 && usersDatabase.filter( (user) => user['password'] === req.body.password).length === 0) {
         usersDatabase.push({
             username: req.body.username,
@@ -105,30 +100,27 @@ app.post('/signup', function(req, res) {
         })
         console.log(usersDatabase)
     } if(usersDatabase.filter( (user) => user['username'] === req.body.username).length === 1) {
-        // res.send(`Congratulations, ${req.body.username}!  You've just created an account`)
         res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
     } else {
         res.send("Please try again")
     }
-
-    // res.sendFile(path.join(__dirname + '/public/signup.html'));
 })
 
 
 
 
 app.get('/token', function(req, res) {
-
-    loggedIn(req)
-
-    res.send('you should get a token here')
+    if(loggedIn(req)) {
+        console.log('Logged in at /token')
+        return returnToken(req, res)
+    } else {
+        res.send('Invalid credentials')
+    }
 })
 
 app.get('/secretpage', function(req, res) {
-    loggedIn(req)
-
     console.log('GET request to /secretpage...')
-    // res.sendFile(path.join(__dirname + '/public/secretpage.html'));
+    // if token valid -> see page else not
     res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
 })
  
