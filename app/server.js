@@ -1,4 +1,4 @@
- let express = require('express')
+let express = require('express')
 let fs = require('fs')
 let path = require('path')
 let jwt = require("jsonwebtoken")
@@ -16,7 +16,7 @@ nunjucks.configure('public', {
 });
 
   
-const createSignedJWT = function() {
+const createSignedJWT = function(req, res) {
     const jti = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const now = new Date()  
     const epochTime = Math.round(now.getTime() / 1000)
@@ -30,24 +30,44 @@ const createSignedJWT = function() {
  
     let privateKey = fs.readFileSync( path.join(__dirname, "public", "certificate", "key.pem"))
     let token = jwt.sign(payload,{"key": privateKey, "passphrase": "1234"}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
- 
+    res.cookie("userToken", token)
     return token
+}
+
+// Delete all cookies
+
+function clearCookies(req, res) {
+    console.log('in clearCookies')
+    console.log(req.headers.cookie)
+    let cookies = req.headers.cookie.split(";");
+    console.log(cookies)
+
+    for (let i = 0; i < cookies.length; i++) {
+        let cookie = cookies[i];
+        let eqPos = cookie.indexOf("=");
+        let name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+        req.headers.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+    console.log(req.headers.cookie)
 }
  
 const returnToken = function(req, res) {
     console.log("in returnToken")
-    console.log(loggedIn(req))
+    // console.log(loggedIn(req))
     if(loggedIn(req)) {
         console.log('in returnToken, in if')
-        let token = createSignedJWT()
-        res.send(token)
+        console.log('about to clear cookies')
+        clearCookies(req, res)
+        let token = createSignedJWT(req, res)
+        return token
+        // res.send(token)
     } else {
         res.send('401: Unauthorized')
     }
 }
 
 const loggedIn = function(req) {
-    console.log(req.headers.cookie)
+    // console.log(req.headers.cookie)
     if(!req.headers.cookie){
         return false
     } else {
@@ -57,9 +77,7 @@ const loggedIn = function(req) {
     }
 }
  
-// console.log(usersDatabase)
- 
- 
+  
 app.get('/', function(req, res) {
     console.log('GET request to /...')
     res.send("This is just an entrypoint. Go to /login to log in, or to /signup to signup")
@@ -67,7 +85,7 @@ app.get('/', function(req, res) {
 
 app.get('/login', function(req, res) {
     console.log('GET request to /login...')
-    console.log(loggedIn(req))
+    // console.log(loggedIn(req))
     res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isloggedIn: loggedIn(req)})
 })
 
@@ -80,7 +98,7 @@ app.post('/login', function(req, res) {
         res.cookie("loggedIn", "true")
         return res.redirect("/token")
     } else {
-        console.log(req.body)
+        // console.log(req.body)
         res.send("That was not a valid username/password combination")
     }
 
@@ -98,7 +116,7 @@ app.post('/signup', function(req, res) {
             email: 'default@email.com',
             password: req.body.password
         })
-        console.log(usersDatabase)
+        // console.log(usersDatabase)
     } if(usersDatabase.filter( (user) => user['username'] === req.body.username).length === 1) {
         res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
     } else {
@@ -106,13 +124,15 @@ app.post('/signup', function(req, res) {
     }
 })
 
-
-
-
 app.get('/token', function(req, res) {
     if(loggedIn(req)) {
         console.log('Logged in at /token')
-        return returnToken(req, res)
+        const token = returnToken(req, res) 
+        if(token.length > 1) {
+            res.send('You should have a token now')
+        } else {
+            res.send("There was a problem with your token")
+        }
     } else {
         res.send('Invalid credentials')
     }
