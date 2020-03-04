@@ -22,4 +22,7 @@ If JWT valid, grant access
 Show how modifying a single character in the token invalidates it (show a bad attempt at stealing a token)
 
 
-
+More Modules:
+Add a seperate module on analysis tools (ZAP, Wireshark, etc)
+Docker
+Webgoat
