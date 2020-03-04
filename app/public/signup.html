@@ -9,9 +9,13 @@
 <body>
     {% if notSignedUpYet %}
     {% block content %} 
-    <h1>{{ title }}</h1>
-    <h3>So far we have {{ numUsers }} users!  Join us</h3>
-    <p>You are {{ isLoggedIn }} logged in</p>
+        <h1>{{ title }}</h1>
+        <h3>So far we have {{ numUsers }} users!  Join us</h3>
+    {% if isLoggedIn %}
+        <p>You are logged in</p>
+    {% else %}
+        <p>You are not logged in</p>
+    {% endif %}
     {% endblock %}
     
     <h2>Signup:</h2>
