@@ -20,13 +20,17 @@ const createSignedJWT = function(req, res) {
     const jti = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
     const now = new Date()  
     const epochTime = Math.round(now.getTime() / 1000)
+    const username = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'username')[0].split('=')[1]
+    // const x = cookieSplit.filter( pair => pair.split('=')[0] === 'username').split('=')[1]
 
     let payload = {
         "jti": jti,
         "exp": epochTime + 9999,                                           
         "iat": epochTime,
-        "scope": "secretpage:read"
+        "scope": "secretpage:read",
+        "username": username
     }
+    console.log("PAYLOAD: ", payload)
  
     let privateKey = fs.readFileSync( path.join(__dirname, "public", "certificate", "key.pem"))
     let token = jwt.sign(payload,{"key": privateKey, "passphrase": "1234"}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
@@ -38,17 +42,8 @@ const createSignedJWT = function(req, res) {
 
 function clearCookies(req, res) {
     console.log('in clearCookies')
-    console.log(req.headers.cookie)
-    let cookies = req.headers.cookie.split(";");
-    console.log(cookies)
-
-    for (let i = 0; i < cookies.length; i++) {
-        let cookie = cookies[i];
-        let eqPos = cookie.indexOf("=");
-        let name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
-        req.headers.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    }
-    console.log(req.headers.cookie)
+    res.cookie("username", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
+    res.cookie("password", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
 }
  
 const returnToken = function(req, res) {
@@ -57,8 +52,9 @@ const returnToken = function(req, res) {
     if(loggedIn(req)) {
         console.log('in returnToken, in if')
         console.log('about to clear cookies')
-        clearCookies(req, res)
+        // clearCookies(req, res)
         let token = createSignedJWT(req, res)
+        clearCookies(req, res)
         return token
         // res.send(token)
     } else {
@@ -95,7 +91,7 @@ app.post('/login', function(req, res) {
         console.log('Valid user')
         res.cookie("username", req.body.username)
         res.cookie("password", req.body.password)
-        res.cookie("loggedIn", "true")
+        // res.cookie("loggedIn", "true")
         return res.redirect("/token")
     } else {
         // console.log(req.body)
@@ -141,6 +137,7 @@ app.get('/token', function(req, res) {
 app.get('/secretpage', function(req, res) {
     console.log('GET request to /secretpage...')
     // if token valid -> see page else not
+
     res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
 })
  
