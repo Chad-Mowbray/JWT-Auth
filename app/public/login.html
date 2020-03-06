@@ -7,7 +7,7 @@
     <title>Login</title>
 </head>
 <body>
-    {% block content %} 
+    <!-- {% block content %} 
        <h1>{{ title }}</h1>
        <h3>So far we have {{ numUsers }} users!  Join us</h3>
     {% if isLoggedIn %}
@@ -15,7 +15,14 @@
     {% else %}
         <p>You are not logged in</p>
     {% endif %}
-    {% endblock %}
+    {% endblock %} -->
+
+    {% if refresh %}
+        <p>Your token expired, please log in again</p>
+    {% else %}
+        <h1>{{ title }}</h1>
+        <h3>So far we have {{ numUsers }} users!  Join us</h3>
+    {% endif %}
 
     <h2>Login:</h2>
     <form action="/login" method="POST">
