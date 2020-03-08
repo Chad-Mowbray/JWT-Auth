@@ -22,7 +22,13 @@ const createSignedJWT = function(req, res) {
     const jti = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
     const now = new Date()  
     const epochTime = Math.round(now.getTime() / 1000)
-    const username = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'username')[0].split('=')[1]
+    let username;
+    try {
+        username = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'username')[0].split('=')[1]
+    } catch {
+        logout(res)
+        res.send("Token request invalid")
+    }
     let payload = {
         "jti": jti,
         "exp": epochTime + 20,                                           
@@ -31,7 +37,7 @@ const createSignedJWT = function(req, res) {
         "username": username
     }
     const privateKey = fs.readFileSync( path.join(__dirname, "public", "certificate", "key.pem"))
-    const token = jwt.sign(payload,{"key": privateKey, "passphrase": "1234"}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
+    const token = jwt.sign(payload,{"key": privateKey, "passphrase": process.env.PASSPHRASE}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
     for(let user of usersDatabase) {
         if(payload["username"] === user.username) {
             user.JWT = token
@@ -51,6 +57,7 @@ const verifyJWT = function(token, res) {
         const query = querystring.stringify({
             "tokenExpired":"true"
         })
+        logout(res)
         return res.redirect('/login?' + query)
     }
 }
@@ -76,10 +83,19 @@ const loggedIn = function(req) {
         return false
     } else {
         let isLoggedIn = req.headers.cookie.split('; ').filter( keyVal => keyVal.split("=")[0] === "isLoggedIn" && keyVal.split("=")[1] === "true" )
-        console.log("isLoggedIn: ", isLoggedIn)
-        return isLoggedIn ? true : false
-        // return false
+        console.log(typeof isLoggedIn,"isLoggedIn: ", isLoggedIn)
+        try {
+            return isLoggedIn[0].split("=")[1]
+        } catch {
+            return false
+        }
+   
     }
+}
+
+const logout = function(req, res) {
+    // req.cookie("isLoggedIn", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
+    req.cookie("isLoggedIn", false)
 }
  
   
@@ -93,7 +109,7 @@ app.get('/login', function(req, res) {
     if(refresh) {
         res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
     }
-    res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isloggedIn: loggedIn(req), refresh: refresh})
+    res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req), refresh: refresh})
 })
 
 app.post('/login', function(req, res) {

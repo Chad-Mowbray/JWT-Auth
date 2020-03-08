@@ -26,3 +26,14 @@ More Modules:
 Add a seperate module on analysis tools (ZAP, Wireshark, etc)
 Docker
 Webgoat
+
+
+Challenges:
+    -add another super-secret page, and make sure that only users authorized can access it.
+    - add refresh token
+    - Try and understand this code.  Your predecessor might not have been the best coder.  Can you find any bugs?
+        Fix them.  
+    -  change cookies to: secure (is not transmitted via HTTP, only via HTTPS) and httpOnly (can't be read by Javascript) 
+
+
+PUT TOKEN IN BEARER HEADER
