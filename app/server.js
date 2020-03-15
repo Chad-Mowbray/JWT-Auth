@@ -72,7 +72,9 @@ app.get('/token', function(req, res) {
 })
 
 app.get('/secretpage', function(req, res) {
-        const token = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
+        // const token = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
+        const token = req.headers
+        console.log(token)
         if(tkn.verifyJWT(token, res)) {
             res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: log.loggedIn(req)})
         }

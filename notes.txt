@@ -36,5 +36,7 @@ Challenges:
     -  change cookies to: secure (is not transmitted via HTTP, only via HTTPS) and httpOnly (can't be read by Javascript) 
     - put token in Auth header instead of cookie
     - leave token payload blank, have students fill it out
-
+    - store only the jti in the db
+    - at first, authorize just based on if the token is authentic, then as an exercise, parse to token to check for username, password, jti or whatever
+    - start off putting the username and password in the token, then have them change it
 PUT TOKEN IN BEARER HEADER
