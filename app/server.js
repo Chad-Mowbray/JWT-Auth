@@ -78,7 +78,6 @@ const returnToken = function(req, res) {
 }
 
 const loggedIn = function(req) {
-    // console.log(req.headers.cookie)
     if(!req.headers.cookie){
         return false
     } else {
@@ -111,8 +110,6 @@ app.get('/login', function(req, res) {
     }
     if(refresh === true) {
         res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-        // logout(req, res)
-
     }
     console.log(refresh)
     res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req), refresh: refresh})
@@ -125,8 +122,6 @@ app.post('/login', function(req, res) {
         res.cookie("isLoggedIn", "true" )
         return res.redirect("/token")
     } else {
-        // res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-        // logout(req, res)
         res.send("That was not a valid username/password combination")
     }
 })
@@ -162,16 +157,10 @@ app.get('/token', function(req, res) {
 })
 
 app.get('/secretpage', function(req, res) {
-    // try {
         const token = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
         if(verifyJWT(token, res)) {
             res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
-        } //else {
-        //     res.send('You are not authorized to see /secretpage')
-        // }
-    // } catch(error) {
-    //     res.send("There was a problem with your request")
-    // }
+        }
 })
  
  
