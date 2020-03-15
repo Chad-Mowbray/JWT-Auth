@@ -17,17 +17,17 @@
     {% endif %}
     {% endblock %} -->
 
-<h1>{{ isLoggedIn }}</h1>
-    {% if refresh %}
+<!-- <h1>{{ isLoggedIn }}</h1> -->
+    {% if refresh == false %}
         <p>Your token expired, please log in again</p>
     {% else %}
         <h1>{{ title }}</h1>
         <!-- <h3>So far we have {{ numUsers }} users!  Join us</h3> -->
     {% endif %}
 
-    {% if isLoggedIn == "true" %}
+    {% if isLoggedIn == true %}
         <p>You are logged in</p>
-    {% elif isLoggedIn == "false" %}
+    {% elif isLoggedIn == false %}
         <p>You are not logged in</p>
     {% endif %}
 

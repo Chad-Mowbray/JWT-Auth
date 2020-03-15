@@ -43,7 +43,7 @@ const createSignedJWT = function(req, res) {
             user.JWT = token
         }
     }
-    console.log(usersDatabase)
+    // console.log(usersDatabase)
     res.cookie("userToken", token)
     return token
 }
@@ -78,7 +78,7 @@ const returnToken = function(req, res) {
 }
 
 const loggedIn = function(req) {
-    console.log(req.headers.cookie)
+    // console.log(req.headers.cookie)
     if(!req.headers.cookie){
         return false
     } else {
@@ -94,7 +94,7 @@ const loggedIn = function(req) {
 }
 
 const logout = function(req, res) {
-    // req.cookie("isLoggedIn", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
+    req.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
     req.cookie("isLoggedIn", false)
 }
  
@@ -104,11 +104,17 @@ app.get('/', function(req, res) {
 })
 
 app.get('/login', function(req, res) {
-    let refresh = Object.values(url.parse(req.url,true).query) || false
-    // console.log(refresh)
-    if(refresh) {
-        res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
+    let refresh = 'ignore'
+    console.log(Object.values(url.parse(req.url,true).query))
+    if(Object.values(url.parse(req.url,true).query).length > 0) {
+        refresh = Object.values(url.parse(req.url,true).query) || false
     }
+    if(refresh === true) {
+        res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
+        // logout(req, res)
+
+    }
+    console.log(refresh)
     res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req), refresh: refresh})
 })
 
@@ -119,6 +125,8 @@ app.post('/login', function(req, res) {
         res.cookie("isLoggedIn", "true" )
         return res.redirect("/token")
     } else {
+        // res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
+        // logout(req, res)
         res.send("That was not a valid username/password combination")
     }
 })
@@ -154,15 +162,19 @@ app.get('/token', function(req, res) {
 })
 
 app.get('/secretpage', function(req, res) {
-    const token = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
-    if(verifyJWT(token, res)) {
-        res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
-    } else {
-        res.send('You are not authorized to see /secretpage')
-    }
+    // try {
+        const token = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
+        if(verifyJWT(token, res)) {
+            res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
+        } //else {
+        //     res.send('You are not authorized to see /secretpage')
+        // }
+    // } catch(error) {
+    //     res.send("There was a problem with your request")
+    // }
 })
  
  
 app.listen(5000, function() {
-    console.log("server running.....")
+    console.log("server running on localhost:5000.....")
 })
