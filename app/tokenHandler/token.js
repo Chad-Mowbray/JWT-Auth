@@ -32,7 +32,8 @@ const createSignedJWT = function(req, res) {
             user.JWT = token
         }
     }
-    res.cookie("userToken", token)
+    res.cookie("userToken", token)  // for cookie
+    res.set('Authorization', 'Bearer ' + token)  // for Header
     return token
 }
 
