@@ -1,102 +1,19 @@
 let express = require('express')
-let fs = require('fs')
-let path = require('path')
-let jwt = require("jsonwebtoken")
 let nunjucks  = require('nunjucks')
-let querystring = require('querystring')
 const url = require('url')
+
 let usersDatabase = require('./database/fakeDatabase')
+const tkn = require('./tokenHandler/token')
+let log = require('./loginHandler/login')
+
  
 let app = express()
-
 app.use(express.static('public'))
 app.use(express.urlencoded({ extended: true }))
-
 nunjucks.configure('public', {
     autoescape: true,
     express: app
 });
-
-  
-const createSignedJWT = function(req, res) {
-    const jti = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-    const now = new Date()  
-    const epochTime = Math.round(now.getTime() / 1000)
-    let username;
-    try {
-        username = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'username')[0].split('=')[1]
-    } catch {
-        logout(res)
-        res.send("Token request invalid")
-    }
-    let payload = {
-        "jti": jti,
-        "exp": epochTime + 20,                                           
-        "iat": epochTime,
-        "scope": "secretpage:read",
-        "username": username
-    }
-    const privateKey = fs.readFileSync( path.join(__dirname, "public", "certificate", "key.pem"))
-    const token = jwt.sign(payload,{"key": privateKey, "passphrase": process.env.PASSPHRASE}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
-    for(let user of usersDatabase) {
-        if(payload["username"] === user.username) {
-            user.JWT = token
-        }
-    }
-    // console.log(usersDatabase)
-    res.cookie("userToken", token)
-    return token
-}
-
-const verifyJWT = function(token, res) {
-    const cert = fs.readFileSync('public/certificate/cert.pem', "utf8");  // get public key
-    try {
-        const checkedToken = jwt.verify(token, cert)
-        return checkedToken
-    } catch (TokenExpiredError) {
-        const query = querystring.stringify({
-            "tokenExpired":"true"
-        })
-        logout(res)
-        return res.redirect('/login?' + query)
-    }
-}
-
-const clearCookies = function (req, res) {
-    res.cookie("username", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-    res.cookie("password", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-}
- 
-const returnToken = function(req, res) {
-    if(loggedIn(req)) {
-        let token = createSignedJWT(req, res)
-        clearCookies(req, res)
-        return token
-    } else {
-        res.send('401: Unauthorized')
-    }
-}
-
-const loggedIn = function(req) {
-    // console.log(req.headers.cookie)
-    if(!req.headers.cookie){
-        return false
-    } else {
-        let isLoggedIn = req.headers.cookie.split('; ').filter( keyVal => keyVal.split("=")[0] === "isLoggedIn" && keyVal.split("=")[1] === "true" )
-        console.log(typeof isLoggedIn,"isLoggedIn: ", isLoggedIn)
-        try {
-            return isLoggedIn[0].split("=")[1]
-        } catch {
-            return false
-        }
-   
-    }
-}
-
-const logout = function(req, res) {
-    req.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-    req.cookie("isLoggedIn", false)
-}
  
   
 app.get('/', function(req, res) {
@@ -105,28 +22,21 @@ app.get('/', function(req, res) {
 
 app.get('/login', function(req, res) {
     let refresh = 'ignore'
-    console.log(Object.values(url.parse(req.url,true).query))
     if(Object.values(url.parse(req.url,true).query).length > 0) {
         refresh = Object.values(url.parse(req.url,true).query) || false
     }
     if(refresh === true) {
-        res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-        // logout(req, res)
-
+        log.deleteUserTokenCookie(req, res)
     }
     console.log(refresh)
-    res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req), refresh: refresh})
+    res.render("login.html", {title: 'Login Page', numUsers: usersDatabase.length, isLoggedIn: log.loggedIn(req), refresh: refresh})
 })
 
 app.post('/login', function(req, res) {
     if(usersDatabase.filter( (user) => user['username'] === req.body.username ).length === 1 && users.filter( (user) => user['password'] === req.body.password).length === 1) {
-        res.cookie("username", req.body.username)
-        res.cookie("password", req.body.password)
-        res.cookie("isLoggedIn", "true" )
+        log.setLoginCookie(req, res)
         return res.redirect("/token")
     } else {
-        // res.cookie("userToken", "; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;", {encode: String})
-        // logout(req, res)
         res.send("That was not a valid username/password combination")
     }
 })
@@ -149,8 +59,8 @@ app.post('/signup', function(req, res) {
 })
 
 app.get('/token', function(req, res) {
-    if(loggedIn(req)) {
-        const token = returnToken(req, res) 
+    if(log.loggedIn(req)) {
+        const token = tkn.returnToken(req, res) 
         if(token.length > 1) {
             res.send('You should have a token now')
         } else {
@@ -162,16 +72,10 @@ app.get('/token', function(req, res) {
 })
 
 app.get('/secretpage', function(req, res) {
-    // try {
         const token = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
-        if(verifyJWT(token, res)) {
-            res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
-        } //else {
-        //     res.send('You are not authorized to see /secretpage')
-        // }
-    // } catch(error) {
-    //     res.send("There was a problem with your request")
-    // }
+        if(tkn.verifyJWT(token, res)) {
+            res.render("secretpage.html", {title: 'Secret Page', numUsers: usersDatabase.length, isLoggedIn: log.loggedIn(req)})
+        }
 })
  
  
