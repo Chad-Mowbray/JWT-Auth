@@ -34,6 +34,7 @@ Challenges:
     - Try and understand this code.  Your predecessor might not have been the best coder.  Can you find any bugs?
         Fix them.  
     -  change cookies to: secure (is not transmitted via HTTP, only via HTTPS) and httpOnly (can't be read by Javascript) 
-
+    - put token in Auth header instead of cookie
+    - leave token payload blank, have students fill it out
 
 PUT TOKEN IN BEARER HEADER
