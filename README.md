@@ -13,7 +13,7 @@ Believe it or not, this blob of characters is actually used to cut down on clutt
 
 The more times you send your information to the server, the greater the chances are that someone will intercept your traffic.  Very risky.  So you want to minimize the exposure of particularly sensitive information (like a password).
 
-We'll see how the JWT helps protect a user's credentials in a little bit, but for now let's take a look inside the JWT
+We'll see how the JWT helps protect a user's credentials in a little bit, but for now let's take a look inside the JWT.
 
 The first thing to notice is that there are three sections, separated by periods. This might look like encrypted text to you, but it is actually just <i>encoded</i>--in a variety of base64.    
 
@@ -38,7 +38,7 @@ console.log(text);
    ���Ġpg3�rI���!~����P�MG
 ?�eX��⼪�?II�R
 ```
-Admittedly, it's still not perfect, but the base64 decoding has revealed some useful informatio for us. At least now we can see <i>something</i>.  Let's fix the formatting a little bit:
+Admittedly, it's still not perfect, but the base64 decoding has revealed some useful information for us. At least now we can see <i>something</i>.  Let's fix the formatting a little bit:
 
 ```javascript
 {
@@ -87,9 +87,9 @@ At this point, we might ask the obvious question, "How does the receiver of a to
 
 ## Public Key Cryptography
 
-We already know about the Ceasar Cipher.  If you want to exchange encrypted letters with someone using a Ceasar Cipher, you both need to have the same secret number.  But if you are the writer, how do you tell your reader what the secret number is?  You can't simply write in in the top corner of the letter, because anyone who intercepts the letter would be able to decode it.  There are some ways around this.  You might have a dead-drop that you both know about, where you can place the secret number.  But then how do you securely communicate about the dead-drop's location...  It seems like an infinite regression.
+We already know about the Ceasar Cipher.  If you want to exchange encrypted letters with someone using a Ceasar Cipher, you both need to have the same secret number.  But if you are the writer, how do you tell your reader what the secret number is?  You can't simply write it in the top corner of the letter, because anyone who intercepts the letter would be able to decode it.  There are some ways around this.  You might have a dead-drop that you both know about, where you can place the secret number.  But then how do you securely communicate about the dead-drop's location...  It seems like an infinite regression.
 
-Fortunately, there is some math thing that solves this problem for us.  In fact, it is the basis of secure communication on the internet--the "S" in HTTPS.  
+Fortunately, there is ONE WEIRD TRICK that solves this problem for us.  In fact, it is the basis of secure communication on the internet--the "S" in HTTPS.  
 
 Through some kind of magic, public key cryptography allows two people to share encrypted information even when the encryptor uses a publicly available key.  It sounds strange, but here is how it goes.
 
@@ -109,7 +109,7 @@ When Alice wants to send a message to Bob, she encrypts her message with <i>Bob'
 
 It sounds crazy, and it involves math that I won't bother trying to figure out, but we can build a very simple model that shows how it works using very small numbers.
 
-We'll use a Ceasar Cipher to show how Alice and Bob can send an receive encrypted messages without knowing the other's private key.  
+We'll use a Ceasar Cipher (shamelessly copy-pasted from the internet) to show how Alice and Bob can send an receive encrypted messages without knowing the other's private key.  
 
 Here is how the keys are generated:
 
@@ -148,4 +148,8 @@ def return_shared_secret():
 Feel free to let your eyes glaze over.  The point is that, through some mathmatical wizardry, both Alice and Bob end up deciding on the same number for the Ceasar Cipher.
 
 If we now run alice_bob_message_exchange.py, we see that an encrypted message can be sent and received, even though both parties have withheld information.
+
+
+
+Now that we know about JWTs and Public Key Cryptography, we are going to combine them to implement an authentication/authorization system for a website.
 
