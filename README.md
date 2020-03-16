@@ -219,6 +219,8 @@ Jy77d/v70z2EjSzXTF15Ww==
 -----END PRIVATE KEY-----
 ```
 
+We're going to need that when we encrypt the signature.  
+
 Now that we know about JWTs and Public Key Cryptography, we are going to combine them to implement an authentication/authorization system for a website.
 
 
