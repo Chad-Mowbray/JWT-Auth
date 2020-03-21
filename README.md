@@ -89,7 +89,6 @@ First we need a regular Javascript object:
 let header = {
   "alg": "RS256",
   "typ": "JWT",
-  "somethingElse": "randomStuff"
 }
 ```
 Then we convert the object into JSON (this is a JSON Web Token after all)
@@ -221,6 +220,59 @@ Jy77d/v70z2EjSzXTF15Ww==
 
 We're going to need that when we encrypt the signature.  
 
+In order to do this next part we are going to make things a little bit easier on ourselves and use a library that someone else wrote for us.  Often times someone else has already done most of the hard work for us.  Once we install the [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) module, we can use it to sign our token.
+
+```bash
+npm install jsonwebtoken
+```
+
+Then we'll need to add an import ("require") statement at the top of our file:
+
+```javascript
+const jwt = require('jsonwebtoken')
+```
+
+The documentation tells us that there is a method for signing JWTs: 
+
+```javascript
+jwt.sign(payload, secretOrPrivateKey, [options, callback])
+```
+
+It's a convention that things in brackets are optional.  So we need a payload (which we already know about), and a private key (which we just made).
+
+```javascript
+const jwt = require('jsonwebtoken')
+
+let payload = {
+  "jti": "9e1y1zw3dl79zwfj",
+  "exp": 1583695306,
+  "iat": 1583695286,
+  "scope": "secretpage:read",
+  "username": "CoolUsr123"
+}
+const privateKey = fs.readFileSync('key.pem')
+
+const signedToken = jwt.sign(payload, privateKey, {"algorithm": "RS256"});
+```
+
+Our token should look like this:
+
+```bash
+eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5ZTF5MXp3M2RsNzl6d2ZqIiwiZXhwIjoxNTgzNjk1MzA2LCJpYXQiOjE1ODM2OTUyODYsInNjb3BlIjoic2VjcmV0cGFnZTpyZWFkIiwidXNlcm5hbWUiOiJDb29sVXNyMTIzIn0.OQT9zrDjM3Q4r5DbBJmtQwCctutMBldXog6v_dVgwHVJT4NTw-gvxF2jo7iHbWzm2YJ1rzmDB10kzLY_eB_kiv_2CPZt9c7JpJGix1WpylvCcj_0ft1NxBUi2pD6UPR7RXPcDMLp87_vyOqjytIkGA4Mctxffn5mKRrgNVL4bkJlpBlB62fANNkoPc98QhWBM5R54LdZC3Ew-EEGpG4MaU9ZR5bU-pMTg4rj-sQdBR-NofvkWJya2eh0yMm6WxonHPWJbDqfFMk_-d0wV7d0EyDF_00sgkO2btnRBlNdHcHRsnOmEh97U6T8hthyUkaJDvXCgr_AQVm0lN4XhwL8TQ
+```
+
+For convenience, we can paste it into the token debugger at jwt.io, where we see our payload and header.  Finally, we can check our token's signature by pasting in the public key.  If we've done everything correctly we should find that the token signed with the private key can be verified by the corresponding public key.
+
+
+
+
+
+
+
+
+
+
+
 Now that we know about JWTs and Public Key Cryptography, we are going to combine them to implement an authentication/authorization system for a website.
 
 
@@ -228,5 +280,25 @@ Now that we know about JWTs and Public Key Cryptography, we are going to combine
 
 ## Challenges
 
+For today's challenge, you are going to be improving an already-existing codebase.  The first thing you'll want to do is fire it up and kick the tires.  How are things working?  Are there any bugs?  How is the code structured and organized?
+
+After you feel like you know what is happening in the code, start in on the next challenge.
+
 run with:
  PASSPHRASE='1234' node server.js
+
+
+
+ ### What to Put in the Payload?
+
+ The developer who worked on this code before you thought it would be convenient to add the user's credentials to the token's payload.  Maybe that's why he doesn't work here anymore.  You don't want to store things like passwords in a token, because it might not be encrypted.  Plus, the whole point of JWTs is so that you don't have to send a user's credentials in every request.
+
+ Think about what you need, and change your token's payload.
+
+ You'll then need to modify the function that checks the token's validity accordingly.
+
+
+
+ ### Add a Signature
+
+ // add a signature and check it
