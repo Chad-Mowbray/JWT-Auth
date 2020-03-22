@@ -42,7 +42,7 @@ app.post('/login', function(req, res) {
 })
 
 app.get('/signup', function(req, res) {
-    res.render("signup.html", {notSignedUpYet: true, title: 'Signup Page', numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
+    res.render("signup.html", {notSignedUpYet: true, title: 'Signup Page', numUsers: usersDatabase.length, isLoggedIn: log.loggedIn(req)})
 })
 
 app.post('/signup', function(req, res) {
@@ -52,7 +52,7 @@ app.post('/signup', function(req, res) {
             password: req.body.password
         })
     } if(usersDatabase.filter( (user) => user['username'] === req.body.username).length === 1) {
-        res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: usersDatabase.length, isLoggedIn: loggedIn(req)})
+        res.render("signup.html", {notSignedUpYet: false, newUser: req.body.username, numUsers: usersDatabase.length, isLoggedIn: log.loggedIn(req)})
     } else {
         res.send("Please try again")
     }
