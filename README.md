@@ -1,4 +1,6 @@
 # JSON Web Tokens
+
+![jwt-diagram](readme/jwt-diagram.png)
 What is a JSON web token?  A JWT (pronounced "jot" for whatever reason) is a very strange looking bit of JSON that is commonly used to keep track of who a user is (authentication) and what they are allowed to do (authorization).
 
 Don't panic just yet, but here is what one looks like:
@@ -7,7 +9,7 @@ Don't panic just yet, but here is what one looks like:
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5ZTF5MXp3M2RsNzl6d2ZqIiwiZXhwIjoxNTgzNjk1MzA2LCJpYXQiOjE1ODM2OTUyODYsInNjb3BlIjoic2VjcmV0cGFnZTpyZWFkIiwidXNlcm5hbWUiOiJDb29sVXNyMTIzIn0.PuFd1Re1vtKrHpRsYdjBl4FGM48lbdM2AgOSJzDEcDmd0qN9UAQVU_86yWma8RL9MEbxPMc5HW1x9YtQYz_VaXsLofOQh6-tehSQOmbLlboB_lfuuGwiyKnTlQF_mPBZ8HTUQlnS5MQzgVx8iE_8CAM3LlFZQ858mBEC9z9i0kXxvS2FfEw4bO-YNZOm01NfEk0SZrG6gY5RofV1vUw2agRsRBHogr9HheRCFrOyvdq_wJrKbNgF6nSXirvIa1iSFNDy9ufmhJTryZDdGgOwdwTREy7_w1RVyypmBM3a5YX2vyFMaQ-_oIdOJpODS-Rp7eujD0jRrEf58PDaKslv1F0zCGG7VMnRMbNujlo29Fg7mou1Rev3cC_Eb_ofYmJJfps9d6WRvdPqrfYvUmF85HtJgdLhr1mC_nF6y9u93cWxhhgjNZc5r_JkYDjIugXc27JAk2UO1Y4Ad3IRVw8rgRCOd2ukUixxTCF-2iS0VYWJexRZEu_SOg4_H6-p3tGT8rfcyXHArTArgpe5hXjduFBQVnq1uE10egJOrExN6tYmy2U4yQwPesEa_7AQaLcEI8QrGgeVi3p1hltTFdFFwNLkFyWqvyKhBeL164YUKsYW4DLefqcSgcGcPMxC5GXJJsJ2lIX60ooARpVCsTUcKPwSqZViTieK8qvs_SUneUs
 ```
 
-Believe it or not, this blob of characters is actually used to cut down on clutter.  The problem is this:  the HTTP protocol is stateless (like trying to have a conversation with someone with complete amnesia).  Every time your browser makes a new request to a server, it has to send everything (username, password, etc) every single time--to remind the server who it is.  This is not only inefficient, but it can be dangerous too.
+Believe it or not, this blob of characters is actually used to cut down on clutter.  The problem is this:  the HTTP protocol is stateless (like trying to have a conversation with someone with complete amnesia).  Every time your browser makes a new request to a server, it has to send everything (username, password, session data, etc) every single time--to remind the server who it is.  This is not only inefficient, but it can be dangerous too.
 
 The more times you send your information to the server, the greater the chances are that someone will intercept your traffic.  Very risky.  So you want to minimize the exposure of particularly sensitive information (like a password).
 
@@ -58,7 +60,7 @@ That's better.  It's starting to look more like JSON and less like a cat napping
 In JWT lingo, these key/value pairs are called "claims".  These "claims" are what tell an application what it needs to know about a user.  Some of them seem pretty cryptic even after decoding (any guesses for "jti"?).  That's because the JWT was invented, in part, to save space.
 
 #### Roll Your Own
-Now that you've seen what a JWT looks like, and have done some reverse engineering, let's go a head and build up our own JWT from scratch.  It's actually not that hard.
+Now that you've seen what a JWT looks like, and have done some reverse engineering, let's go ahead and build up our own JWT from scratch.  It's actually not that hard.
 
 As you now know, JWTs have three sections (there are other variations, but you don't need to worry about them).  These sections are
 1. Header
@@ -99,7 +101,7 @@ Then we encode that JSON object into utf8
 let utf8Header = Buffer.from(headerAsJSON).toString("utf8")
 ```
 
-If you have been logging these variables, you are probably dissapointed that nothing looks different.  But this next step should be very exciting
+If you have been logging these variables, you are probably disappointed  that nothing looks different.  But this next step should be very exciting
 ```javascript
 let base64Header = Buffer.from(utf8Header).toString("base64")
 ```
@@ -115,7 +117,7 @@ The Internet Engineering Task Force, the people who make all the rules that most
 
 >   None of the claims defined below are intended to be mandatory to use or implement in all cases, but rather they provide a starting point for a set of useful, interoperable claims.  Applications using JWTs should define which specific claims they use and when they are required or optional.
 
-Fascinating!  What this means is that, you can basically put whatever you want in a JWT.  Technically.  But the reality is that pretty much everyone pretty much follows the same conventions.  How exactly you structure your JWT, and the claims you include in it, will depend on your application's requirements.
+Fascinating!  What this means is that you can basically put whatever you want in a JWT.  Technically.  But the reality is that pretty much everyone pretty much follows the same conventions.  How exactly you structure your JWT, and the claims you include in it, will depend on your application's requirements.
 
 
 In our particular JWT, the JWT ID (jti) is a unique identifier for our token, like a serial number.  Next we have the token's expiration time in seconds (here is more about [the Epoch](https://en.wikipedia.org/wiki/Unix_time)).  
@@ -218,7 +220,7 @@ Jy77d/v70z2EjSzXTF15Ww==
 
 We're going to need that when we encrypt the signature.  
 
-In order to do this next part we are going to make things a little bit easier on ourselves and use a library that someone else wrote for us.  Often times someone else has already done most of the hard work for us.  Once we install the [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) module, we can use it to sign our token.
+In order to do this next part we are going to make things a little bit easier on ourselves and use a library that someone else wrote for us.  Oftentimes someone else has already done most of the hard work for us.  Once we install the [jsonwebtoken](https://www.npmjs.com/package/jsonwebtoken) module, we can use it to sign our token.
 
 ```bash
 npm install jsonwebtoken
@@ -268,6 +270,8 @@ Now that we know about JWTs and Public Key Cryptography, we are going to combine
 For today's challenge, you are going to be improving an already-existing codebase.  The first thing you'll want to do is fire it up and kick the tires.  How are things working?  Are there any bugs?  How is the code structured and organized?
 
 After you feel like you know what is happening in the code, start in on the next challenge.
+
+NOTE: You will likely only need to make changes within tokenHandler/token.js, so focus your attention there
 
  ### Challenge 1: What to Put in the Payload?
  The developer who worked on this code before you thought it would be convenient to add the user's credentials to the token's payload.  Maybe that's why he doesn't work here anymore.  You don't want to store things like passwords in a token, because it might not be encrypted.  Plus, the whole point of JWTs is so that you don't have to send a user's credentials in every request.

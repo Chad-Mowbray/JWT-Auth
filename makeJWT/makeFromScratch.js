@@ -59,72 +59,11 @@ console.log(signedToken)
 
 
 
-// const crypto = require('crypto');
-// const jwt = require('jsonwebtoken')
-// const fs = require('fs')
-
-
-// const convertToJWT = function (JWTSection) {
-//     let sectionAsJSON = JSON.stringify(JWTSection)
-//     let utf8Section = Buffer.from(sectionAsJSON).toString("utf8")
-//     let base64Section = Buffer.from(utf8Section).toString("base64")
-//     let base64UrlSection = base64Section.replace('+', '-').replace('/', '_').replace(/=+$/, '');
-
-
-//     // return base64Section
-//     return base64UrlSection
-// }
-
-// // const payload = "eyJqdGkiOiI5ZTF5MXp3M2RsNzl6d2ZqIiwiZXhwIjoxNTgzNjk1MzA2LCJpYXQiOjE1ODM2OTUyODYsInNjb3BlIjoic2VjcmV0cGFnZTpyZWFkIiwidXNlcm5hbWUiOiJDb29sVXNyMTIzIn0"
-// // const header = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsInNvbWV0aGluZ0Vsc2UiOiJyYW5kb21TdHVmZiJ9"
-// const privateKey = fs.readFileSync('key.pem')
-// const publicKey = fs.readFileSync('cert.pem')
-
-// // const header = convertToJWT({alg: "RS256", typ: "JWT"})
-// // const payload = convertToJWT({fake: "fakePayload"})
-// // const combined = header + "." + payload
-
-// // const combined = header + "." + payload
-
-// // const sign = crypto.createSign('SHA256');
-// // sign.write(combined);
-// // sign.end();
-// // const signature = sign.sign(privateKey, 'base64');
-// // console.log(signature)
-
-// // const verify = crypto.createVerify('SHA256');
-// // verify.write(combined);
-// // verify.end();
-// // console.log(verify.verify(publicKey, signature, 'base64'));
-
-
-// // encoded.replace('+', '-').replace('/', '_').replace(/=+$/, '');
 
 
 
-// // let signatureSection = convertToJWT(signature)
-// // console.log(signatureSection)
-// // const header = convertToJWT({alg: "RSA256", typ: "JWT"})
-// // const payload = convertToJWT({fake: "fakePayload"})
-// // combined = header + "." + payload
-
-// // completeJWT = combined + "." + signatureSection.replace('+', '-').replace('/', '_').replace(/=+$/, '');
-
-// let payload = {
-//     "jti": "9e1y1zw3dl79zwfj",
-//     "exp": 1583695306,
-//     "iat": 1583695286,
-//     "scope": "secretpage:read",
-//     "username": "CoolUsr123"
-//   }
-
-// //   let header = {
-// //     "alg": "RS256",
-// //     "typ": "JWT",
-// //     "somethingElse": "randomStuff"
-// //   }
-
-// var token = jwt.sign(payload, privateKey);
 
 
-// console.log(token)
+
+
+
