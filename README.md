@@ -3,7 +3,7 @@
 ![jwt-diagram](readme/jwt-diagram.png)
 What is a JSON web token?  A JWT (pronounced "jot" for whatever reason) is a very strange looking bit of JSON that is commonly used to keep track of who a user is (authentication) and what they are allowed to do (authorization).
 
-Don't panic just yet, but here is what one looks like:
+Don't panic just yet, but here is a live one:
 
 ```bash
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5ZTF5MXp3M2RsNzl6d2ZqIiwiZXhwIjoxNTgzNjk1MzA2LCJpYXQiOjE1ODM2OTUyODYsInNjb3BlIjoic2VjcmV0cGFnZTpyZWFkIiwidXNlcm5hbWUiOiJDb29sVXNyMTIzIn0.PuFd1Re1vtKrHpRsYdjBl4FGM48lbdM2AgOSJzDEcDmd0qN9UAQVU_86yWma8RL9MEbxPMc5HW1x9YtQYz_VaXsLofOQh6-tehSQOmbLlboB_lfuuGwiyKnTlQF_mPBZ8HTUQlnS5MQzgVx8iE_8CAM3LlFZQ858mBEC9z9i0kXxvS2FfEw4bO-YNZOm01NfEk0SZrG6gY5RofV1vUw2agRsRBHogr9HheRCFrOyvdq_wJrKbNgF6nSXirvIa1iSFNDy9ufmhJTryZDdGgOwdwTREy7_w1RVyypmBM3a5YX2vyFMaQ-_oIdOJpODS-Rp7eujD0jRrEf58PDaKslv1F0zCGG7VMnRMbNujlo29Fg7mou1Rev3cC_Eb_ofYmJJfps9d6WRvdPqrfYvUmF85HtJgdLhr1mC_nF6y9u93cWxhhgjNZc5r_JkYDjIugXc27JAk2UO1Y4Ad3IRVw8rgRCOd2ukUixxTCF-2iS0VYWJexRZEu_SOg4_H6-p3tGT8rfcyXHArTArgpe5hXjduFBQVnq1uE10egJOrExN6tYmy2U4yQwPesEa_7AQaLcEI8QrGgeVi3p1hltTFdFFwNLkFyWqvyKhBeL164YUKsYW4DLefqcSgcGcPMxC5GXJJsJ2lIX60ooARpVCsTUcKPwSqZViTieK8qvs_SUneUs
@@ -64,14 +64,14 @@ Now that you've seen what a JWT looks like, and have done some reverse engineeri
 
 As you now know, JWTs have three sections (there are other variations, but you don't need to worry about them).  These sections are
 1. Header
-2. Body
+2. Payload
 3. Signature
 
 ![JWT Structure](readme/JWT_structure.webp)
 
 The first section of the JWT is called the "header".  And like an HTTP header, it gives the recipient metadata about the message's contents.  In this case, the algorithm used to sign the token (more on that later) is RS256, one of the most common. 
 
-Here is how you go from:
+Let's have a go at reverse engineering this header.  Our goal is to go from this:
 
 ```javascript
 {
@@ -79,12 +79,12 @@ Here is how you go from:
   "typ": "JWT"
 }
 ```
-to
+to this:
 ```bash
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9
 ```
 
-First we need a regular Javascript object:
+First we will need a regular Javascript object:
 ```javascript
 let header = {
   "alg": "RS256",
@@ -101,11 +101,11 @@ Then we encode that JSON object into utf8
 let utf8Header = Buffer.from(headerAsJSON).toString("utf8")
 ```
 
-If you have been logging these variables, you are probably disappointed  that nothing looks different.  But this next step should be very exciting
+If you have been logging these variables, you are probably disappointed that nothing looks different so far. All the drama comes next:
 ```javascript
 let base64Header = Buffer.from(utf8Header).toString("base64")
 ```
-In other words: 
+Which gives us: 
 ```bash
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsInNvbWV0aGluZ0Vsc2UiOiJyYW5kb21TdHVmZiJ9
 ```
@@ -126,7 +126,7 @@ How long should a token be valid for?  Well that depends on a lot of factors, bu
 
 Next we have "scope".  This is where the token bearer's permissions are stored.  It answers the authorization question, "What am I allowed to do?".  In this case, the token bearer is allowed to make GET requests to "secretpage".
 
-I suppose that's enough about the payload for now.  Let's make one!
+I suppose that's enough about the payload for now.  Let's try and make one!
 
 We start with our payload:
 
@@ -175,7 +175,7 @@ Since the header and body are unencrypted (only base64 encoded), anyone could in
 
 The JWT's signature is there to ensure both of those things.  It works like this: the token's header and payload are concatenated and encrypted with an algorithm that uses the "private key" when the token is generated.  Then, when the token is received, a "public key" that corresponds to the "private key" is used to decrypt the signature and ensure that everything matches.
 
-So the signature allows us to trust the information we find in the payload--that it was created by a trusted component, and that it hasn't been tampered with since.
+So the signature allows us to trust the information we find in the payload--that it was created by a trusted component (the owner of the private key), and that it hasn't been tampered with since.
 
 Now that we know how a JWT signature works, let's implement one.
 
@@ -238,7 +238,7 @@ The documentation tells us that there is a method for signing JWTs:
 jwt.sign(payload, secretOrPrivateKey, [options, callback])
 ```
 
-It's a convention that things in brackets are optional.  So we need a payload (which we already know about), and a private key (which we just made).
+It's a convention that things in brackets are optional.  So we need a payload (which we already know about), a private key (which we just made), and optionally we'll specify the algorithm (in place of the header).
 
 ```javascript
 const jwt = require('jsonwebtoken')
@@ -261,7 +261,7 @@ Our token should look like this:
 eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI5ZTF5MXp3M2RsNzl6d2ZqIiwiZXhwIjoxNTgzNjk1MzA2LCJpYXQiOjE1ODM2OTUyODYsInNjb3BlIjoic2VjcmV0cGFnZTpyZWFkIiwidXNlcm5hbWUiOiJDb29sVXNyMTIzIn0.OQT9zrDjM3Q4r5DbBJmtQwCctutMBldXog6v_dVgwHVJT4NTw-gvxF2jo7iHbWzm2YJ1rzmDB10kzLY_eB_kiv_2CPZt9c7JpJGix1WpylvCcj_0ft1NxBUi2pD6UPR7RXPcDMLp87_vyOqjytIkGA4Mctxffn5mKRrgNVL4bkJlpBlB62fANNkoPc98QhWBM5R54LdZC3Ew-EEGpG4MaU9ZR5bU-pMTg4rj-sQdBR-NofvkWJya2eh0yMm6WxonHPWJbDqfFMk_-d0wV7d0EyDF_00sgkO2btnRBlNdHcHRsnOmEh97U6T8hthyUkaJDvXCgr_AQVm0lN4XhwL8TQ
 ```
 
-For convenience, we can paste it into the token debugger at jwt.io, where we see our payload and header.  Finally, we can check our token's signature by pasting in the public key.  If we've done everything correctly we should find that the token signed with the private key can be verified by the corresponding public key.
+For convenience, we can paste it into the token debugger at [jwt.io](jwt.io), where we see our payload and header.  Finally, we can check our token's signature by pasting in the public key.  If we've done everything correctly we should find that the token signed with the private key can be verified by the corresponding public key.
 
 Now that we know about JWTs and Public Key Cryptography, we are going to combine them to implement an authentication/authorization system for a website.
 
@@ -269,7 +269,7 @@ Now that we know about JWTs and Public Key Cryptography, we are going to combine
 ## Challenges
 For today's challenge, you are going to be improving an already-existing codebase.  The first thing you'll want to do is fire it up and kick the tires.  How are things working?  Are there any bugs?  How is the code structured and organized?
 
-After you feel like you know what is happening in the code, start in on the next challenge.
+After you feel like you know what is happening in the code, start in on the first challenge.
 
 NOTE: You will likely only need to make changes within tokenHandler/token.js, so focus your attention there
 

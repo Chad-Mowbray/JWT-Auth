@@ -61,7 +61,7 @@ app.get('/token', function(req, res) {
     if(log.loggedIn(req)) {
         const token = tkn.returnToken(req, res) 
         if(token.length > 1) {
-            res.send('You should have a token now')
+            res.send('You should have a token now, go to /secretpage')
         } else {
             res.send("There was a problem with your token")
         }
