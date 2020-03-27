@@ -136,7 +136,6 @@
 //         const epochTime = Math.round(now.getTime() / 1000)
 //         if (usersDatabase.filter( (user) => user['username'] === username ).length === 1 )  {
 //             if(Number(tokenPayload["exp"]) - epochTime >= 0 ) {
-//                 const diff = Number(tokenPayload["exp"]) - epochTime 
 //                 return theToken
 //             } else {
 //                 return res.redirect('/login')
@@ -169,68 +168,68 @@
 
 
 
-// // Challenge 3
-// //     add signature to token
-// //     run with PASSPHRASE='1234' node server.js 
+// Challenge 3
+//     add signature to token
+//     run with PASSPHRASE='1234' node server.js 
 
 
-// let fs = require('fs')
-// let jwt = require("jsonwebtoken")
-// let path = require('path')
-// let querystring = require('querystring')
+let fs = require('fs')
+let jwt = require("jsonwebtoken")
+let path = require('path')
+let querystring = require('querystring')
 
-// let loginHandler = require('../loginHandler/login')
+let loginHandler = require('../loginHandler/login')
 
 
-// const createSignedJWT = function(req, res) {
-//     const jti = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
-//     const now = new Date()  
-//     const epochTime = Math.round(now.getTime() / 1000)
-//     try {
-//         username = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'username')[0].split('=')[1]
-//     } catch {
-//         loginHandler.logout(res)
-//         res.send("Token request invalid")
-//     }
-//     let payload = {
-//         "jti": jti,
-//         "exp": epochTime + 15,                                           
-//         "iat": epochTime,
-//         "username": username
-//     }
-//     const privateKey = fs.readFileSync( path.join(__dirname, "../public", "certificate", "key.pem"))
-//     const token = jwt.sign(payload,{"key": privateKey, "passphrase": process.env.PASSPHRASE}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
+const createSignedJWT = function(req, res) {
+    const jti = Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+    const now = new Date()  
+    const epochTime = Math.round(now.getTime() / 1000)
+    try {
+        username = req.headers.cookie.split('; ').filter( pair => pair.split('=')[0] === 'username')[0].split('=')[1]
+    } catch {
+        loginHandler.logout(res)
+        res.send("Token request invalid")
+    }
+    let payload = {
+        "jti": jti,
+        "exp": epochTime + 15,                                           
+        "iat": epochTime,
+        "username": username
+    }
+    const privateKey = fs.readFileSync( path.join(__dirname, "../public", "certificate", "key.pem"))
+    const token = jwt.sign(payload,{"key": privateKey, "passphrase": process.env.PASSPHRASE}, { algorithm: 'RS256' });  // passphrase is the password you use when generating the certificate
    
-//     res.cookie("userToken", token) 
-//     return token
-// }
+    res.cookie("userToken", token) 
+    return token
+}
 
 
 
-// module.exports.verifyJWT = function(token, res) {
+module.exports.verifyJWT = function(token, res) {
 
-//     const cert = fs.readFileSync('public/certificate/cert.pem', "utf8");  // get public key
-//     try {
-//         const theToken = token["cookie"].split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
-//         const checkedToken = jwt.verify(theToken, cert)
-//         return checkedToken
-//     } catch (TokenExpiredError) {
-//         const query = querystring.stringify({
-//             "tokenExpired":"true"
-//         })
-//         loginHandler.logout(res)
-//         return res.redirect('/login?' + query)
-//     }
-// }
+    const cert = fs.readFileSync('public/certificate/cert.pem', "utf8");  // get public key
+    try {
+        const theToken = token["cookie"].split('; ').filter( pair => pair.split('=')[0] === 'userToken')[0].split('=')[1]
+        const checkedToken = jwt.verify(theToken, cert)
+        return checkedToken
+    } catch (TokenExpiredError) {
+        const query = querystring.stringify({
+            "tokenExpired":"true"
+        })
+        loginHandler.logout(res)
+        return res.redirect('/login?' + query)
+    }
+}
 
 
-// module.exports.returnToken = function(req, res) {
-//     if(loginHandler.loggedIn(req)) {
-//         let token = createSignedJWT(req, res)
-//         loginHandler.clearCookies(req, res)
-//         return token
-//     } else {
-//         res.send('401: Unauthorized')
-//     }
-// }
+module.exports.returnToken = function(req, res) {
+    if(loginHandler.loggedIn(req)) {
+        let token = createSignedJWT(req, res)
+        loginHandler.clearCookies(req, res)
+        return token
+    } else {
+        res.send('401: Unauthorized')
+    }
+}
 

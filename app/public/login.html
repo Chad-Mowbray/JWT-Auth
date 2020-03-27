@@ -7,22 +7,11 @@
     <title>Login</title>
 </head>
 <body>
-    <!-- {% block content %} 
-       <h1>{{ title }}</h1>
-       <h3>So far we have {{ numUsers }} users!  Join us</h3>
-    {% if isLoggedIn %}
-       <p>You are logged in</p>
-    {% else %}
-        <p>You are not logged in</p>
-    {% endif %}
-    {% endblock %} -->
 
-<!-- <h1>{{ isLoggedIn }}</h1> -->
     {% if refresh == false %}
         <p>Your token expired, please log in again</p>
     {% else %}
         <h1>{{ title }}</h1>
-        <!-- <h3>So far we have {{ numUsers }} users!  Join us</h3> -->
     {% endif %}
 
     {% if isLoggedIn == true %}
